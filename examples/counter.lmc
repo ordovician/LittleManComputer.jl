@@ -1,0 +1,8 @@
+     INP
+     OUT      // Initialize output 
+LOOP BRZ QUIT // If the accumulator value is 0, jump to the memory address labeled QUIT
+     SUB ONE  // Label this memory address as LOOP, The instruction will then subtract the value stored at address ONE from the accumulator
+     OUT
+     BRA LOOP // Jump (unconditionally) to the memory address labeled LOOP
+QUIT HLT      // Label this memory address as QUIT
+ONE  DAT 1    // Store the value 1 in this memory address, and label it ONE
