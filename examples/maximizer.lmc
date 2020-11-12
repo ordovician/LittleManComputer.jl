@@ -1,0 +1,16 @@
+loop    INP
+        STA X
+        INP
+        STA Y
+        SUB X
+        BRP first
+
+second  LDA X
+        OUT
+        BRA loop
+    
+first   LDA Y
+        OUT
+        BRA loop
+X       DAT 0
+Y       DAT 0
