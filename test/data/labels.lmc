@@ -1,0 +1,6 @@
+zero   INP
+
+one    OUT
+two    INP
+
+three  HLT
