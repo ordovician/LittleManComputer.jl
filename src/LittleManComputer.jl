@@ -29,8 +29,8 @@ function execute(mem::Vector{Int} = [0], inputs::Vector{Int} = Int[])
     cpu = CPU(0, 0)
     outputs = Int[]
     
-    operand(IR::Int) = rem(IR, 100)
-    data(IR::Int) = mem[operand(IR)+1]
+    address(IR::Int) = rem(IR, 100) + 1
+    data(IR::Int) = mem[address(IR)]
     
     println("Address: Instruction Accu: value")
     # limit to 1000 instructions to avoid getting trapped
@@ -45,18 +45,18 @@ function execute(mem::Vector{Int} = [0], inputs::Vector{Int} = Int[])
         elseif opcode == 2
             cpu.accumulator -= data(IR)           
         elseif opcode == 3
-            mem[data(IR)] = cpu.accumulator
+            mem[address(IR)] = cpu.accumulator
         elseif opcode == 5
             cpu.accumulator = data(IR)
         elseif opcode == 6
-            cpu.pc = operand(IR)
+            cpu.pc = address(IR)
         elseif opcode == 7
             if cpu.accumulator == 0
-                cpu.pc = operand(IR)
+                cpu.pc = address(IR)
             end
         elseif opcode == 8
             if cpu.accumulator >= 0
-                cpu.pc = operand(IR)
+                cpu.pc = address(IR)
             end
         elseif opcode == 0
             break
