@@ -156,7 +156,11 @@ function assemble(filename::AbstractString)
         
         # Check if we have a data directive and handle it
         if words[i] == "DAT"
-            push!(memory, parse(Int, words[i+1]))
+			if length(words) > 2
+                push!(memory, parse(Int, words[i+1]))
+			else
+				push!(memory, 0) # If you value is set default is 0
+			end
             continue
         end
         

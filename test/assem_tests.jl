@@ -19,5 +19,19 @@ examples = joinpath(dirname(@__FILE__), "../examples")
         end
     end
     
-    
+	@testset "Regression test" begin
+		files = map(filter(endswith(".machine"), readdir(examples))) do filename
+			splitext(filename)[1]
+		end
+		for file in files
+			machinefile = joinpath(examples, string(file, ".machine"))
+			srcfile 	= joinpath(examples, string(file, ".lmc"))
+			@test isfile(machinefile)
+			@test isfile(srcfile)
+		 
+			target = parse.(Int, filter(!isempty, readlines(machinefile)))
+			memory = assemble(srcfile)
+			@test memory == target
+		end
+	end    
 end
