@@ -126,6 +126,9 @@ function symboltable(lines::AbstractArray{<:AbstractString})
     labels
 end
 
+"Remove comment from source code line"
+remove_comment(line) = split(line, "//") |> first |> strip
+    
 """
      assemble(filename)
 Turn assembly code found in `filename` into numeric codes (machine code).
@@ -138,7 +141,7 @@ function assemble(filename::AbstractString)
     labels = symboltable(lines)
     
     for line in lines
-        codeline = split(line, "//") |> first |> strip # Get rid of comments
+        codeline = remove_comment(line)
         words = split(codeline)
         
         if isempty(words)
