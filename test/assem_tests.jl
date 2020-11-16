@@ -33,5 +33,17 @@ examples = joinpath(dirname(@__FILE__), "../examples")
 			memory = assemble(srcfile)
 			@test memory == target
 		end
-	end    
+	end
+    
+    @testset "Assemble mnemonic" begin
+        using LittleManComputer: assemble_mnemonic
+
+        labels = Dict("foo" => 42, "bar" => 7)
+        
+        @test assemble_mnemonic(["ADD", "12"]) == 112 
+        @test assemble_mnemonic(["SUB", "4"]) == 204
+        @test assemble_mnemonic(["ADD", "foo"], labels) == 142
+        @test assemble_mnemonic(["SUB", "bar"], labels) == 207        
+    end
+       
 end

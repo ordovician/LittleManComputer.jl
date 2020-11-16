@@ -129,6 +129,57 @@ end
 
 "Remove comment from source code line"
 remove_comment(line) = split(line, "//") |> first |> strip
+
+"""
+    assemble_mnemonic(words, labels) -> Union{Int, Nothing}
+Assemble a single mnemonic split into multiple parts. Assume `words` is non-empty.
+Words could contain only a label in which case `nothing` would be returned.
+
+```julia-repl
+julia> assemble_mnemonic(["somelabel"], Dict("somelabel" => 4))
+
+julia> assemble_mnemonic(["ADD", "42"])
+142
+```
+"""
+function assemble_mnemonic(words::Vector{<:AbstractString}, labels=Dict{String, Int}())
+    # Assume first word is mnemonic until disproven
+    i = 1   
+    if haskey(labels, words[1])
+        if length(words) == 1
+            return nothing
+        end
+        i = 2
+    end
+    
+    # Check if we have a data directive and handle it
+    if words[i] == "DAT"
+		if length(words) > 2
+            return parse(Int, words[i+1])
+		else
+			return 0 # If you value is set default is 0
+		end
+    end
+    
+    # Deal with regular assembly code
+    mnemonic = words[i]
+    if !haskey(numeric_dict, mnemonic)
+        error("'$mnemonic' is an unknown mnemonic")
+    end
+    opcode = numeric_dict[mnemonic]
+    if opcode != 0 && rem(opcode, 100) == 0
+        arg = words[i+1]
+        operand = if haskey(labels, arg)
+            labels[arg]
+        else
+            parse(Int, arg)
+        end
+        
+        return opcode + operand
+    else
+        return opcode
+    end    
+end
     
 """
      assemble(filename)
@@ -149,39 +200,11 @@ function assemble(filename::AbstractString)
             continue
         end
         
-        # Assume first word is mnemonic until disproven
-        i = 1   
-        if haskey(labels, words[1])
-            if length(words) == 1
-                continue
-            end
-            i = 2
-        end
-        
-        # Check if we have a data directive and handle it
-        if words[i] == "DAT"
-			if length(words) > 2
-                push!(memory, parse(Int, words[i+1]))
-			else
-				push!(memory, 0) # If you value is set default is 0
-			end
+        code = assemble_mnemonic(words, labels)
+        if code == nothing
             continue
-        end
-        
-        # Deal with regular assembly code
-        mnemonic = words[i]
-        opcode = numeric_dict[mnemonic]
-        if opcode != 0 && rem(opcode, 100) == 0
-            arg = words[i+1]
-            operand = if haskey(labels, arg)
-                labels[arg]
-            else
-                parse(Int, arg)
-            end
-            
-            push!(memory, opcode + operand)
         else
-            push!(memory, opcode)
+            push!(memory, code)
         end
     end
     memory
