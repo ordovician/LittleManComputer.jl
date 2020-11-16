@@ -32,11 +32,10 @@ function execute(mem::Vector{Int} = [0], inputs::Vector{Int} = Int[])
     address(IR::Int) = rem(IR, 100) + 1
     data(IR::Int) = mem[address(IR)]
     
-    println("Address: Instruction Accu: value")
     # limit to 1000 instructions to avoid getting trapped
     for i in 1:50
         IR = mem[cpu.pc+1]
-        println("$(cpu.pc): $IR\tAccu: $(cpu.accumulator)")
+        println("$(cpu.pc): $IR\tAccu: ", rpad(cpu.accumulator, 3), "// ", disassemble(IR))
         cpu.pc += 1
         
         opcode = div(IR, 100)
@@ -85,6 +84,8 @@ const numeric_dict = Dict(
     "OUT" => 902,
     "HLT" => 000
 )
+
+mnemonic_dict = Dict(value => key for (key, value) in numeric_dict)
 
 """
     symboltable(filename::AbstractString)
@@ -210,31 +211,33 @@ function disassemble(filename::AbstractString)
     disassemble(parse.(Int, lines))
 end
 
+
+"""
+    disassemble(code::Integer)
+Disassemble single instruction.
+"""
+function disassemble(code::Integer)
+    if code == 0
+        "HLT"
+    elseif code < 100
+        "DAT $code"
+    elseif code > 900
+        mnemonic_dict[code]
+    else
+        opcode = div(code, 100) * 100
+        m = mnemonic_dict[opcode]
+        operand = rem(code, 100) 
+        
+        string(m, " ", operand)       
+    end
+end
+
 """
     disassemble(mem::Vector{Int})
 Disassemble array of numerical codes for Little Man Computer.    
 """
-function disassemble(mem::Vector{Int})
-    mnemonic_dict = Dict(value => key for (key, value) in numeric_dict)
-    lines = String[]
-    
-    for code in mem              
-        if code < 100
-            push!(lines, "DAT $code")
-            continue
-        end
-        
-        if code > 900
-            push!(lines, mnemonic_dict[code])
-            continue
-        end
-        
-        opcode = div(code, 100) * 100
-        m = mnemonic_dict[opcode]
-        operand = rem(code, 100)
-       
-        push!(lines, string(m, " ", operand))
-    end
+function disassemble(mem::Vector{<:Integer})
+    lines = map(disassemble, mem)
     
     for (i, line) in enumerate(lines)
        println(lpad(i-1, 3), " ", line) 
