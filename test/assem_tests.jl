@@ -1,5 +1,5 @@
-datadir = joinpath(dirname(@__FILE__), "data")
-examples = joinpath(dirname(@__FILE__), "../examples")
+datadir = joinpath(@__DIR__, "data")
+examples = joinpath(@__DIR__, "../examples")
 
 @testset "Assembler tests" begin
     @testset "Symbol table" begin
