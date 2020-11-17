@@ -44,6 +44,12 @@ examples = joinpath(dirname(@__FILE__), "../examples")
         @test assemble_mnemonic(["SUB", "4"]) == 204
         @test assemble_mnemonic(["ADD", "foo"], labels) == 142
         @test assemble_mnemonic(["SUB", "bar"], labels) == 207        
+        
+        @test assemble_mnemonic(["BRZ", "bar"], labels) == 707
+        @test assemble_mnemonic(["BRZ", "foo"], labels) == 742
+        @test assemble_mnemonic(["BRZ", "55"]) == 755
+        @test assemble_mnemonic(["LDA", "37"]) == 537
+        @test assemble_mnemonic(["LDA", "foo"], labels) == 542
     end
        
 end

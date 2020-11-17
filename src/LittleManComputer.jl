@@ -72,7 +72,7 @@ function execute(mem::Vector{Int} = [0], inputs::Vector{Int} = Int[])
 end
 
 
-const numeric_dict = Dict(
+const opcodes = Dict(
     "ADD" => 100,
     "SUB" => 200,
     "STA" => 300,
@@ -85,7 +85,7 @@ const numeric_dict = Dict(
     "HLT" => 000
 )
 
-mnemonic_dict = Dict(value => key for (key, value) in numeric_dict)
+const mnemonics = Dict(value => key for (key, value) in opcodes)
 
 """
     symboltable(filename::AbstractString)
@@ -118,7 +118,7 @@ function symboltable(lines::AbstractArray{<:AbstractString})
         
         label = words[1]
         
-        if !haskey(numeric_dict, label)
+        if !haskey(opcodes, label)
             labels[label] = address
         end
         
@@ -163,10 +163,10 @@ function assemble_mnemonic(words::Vector{<:AbstractString}, labels=Dict{String, 
     
     # Deal with regular assembly code
     mnemonic = words[i]
-    if !haskey(numeric_dict, mnemonic)
+    if !haskey(opcodes, mnemonic)
         error("'$mnemonic' is an unknown mnemonic")
     end
-    opcode = numeric_dict[mnemonic]
+    opcode = opcodes[mnemonic]
     if opcode != 0 && rem(opcode, 100) == 0
         arg = words[i+1]
         operand = if haskey(labels, arg)
@@ -188,7 +188,7 @@ Returned as an array of 3-digit decimal numbers.
 """
 function assemble(filename::AbstractString)
     lines = readlines(filename)
-    memory = Int[]
+    program = Int[]
     
     labels = symboltable(lines)
     
@@ -200,14 +200,14 @@ function assemble(filename::AbstractString)
             continue
         end
         
-        code = assemble_mnemonic(words, labels)
-        if code == nothing
+        instruction = assemble_mnemonic(words, labels)
+        if instruction == nothing
             continue
         else
-            push!(memory, code)
+            push!(program, instruction)
         end
     end
-    memory
+    program
 end
 
 """
@@ -215,13 +215,13 @@ end
 Turn assembly code found in `filename` and store result in `outfile`
 """
 function assemble(filename::AbstractString, outfile::AbstractString)
-    mem = assemble(filename)
+    program = assemble(filename)
     open(outfile, "w") do io
-        for m in mem
-            println(io, m)
+        for instruction in program
+            println(io, instruction)
         end
     end
-    mem
+    program
 end
 
 """
@@ -236,31 +236,31 @@ end
 
 
 """
-    disassemble(code::Integer)
-Disassemble single instruction.
+    disassemble(instruction::Integer)
+Disassemble single instruction and produce the mnemonic and operand
 """
-function disassemble(code::Integer)
-    if code == 0
+function disassemble(instruction::Integer)
+    if instruction == 0
         "HLT"
-    elseif code < 100
+    elseif instruction < 100
         "DAT $code"
-    elseif code > 900
-        mnemonic_dict[code]
+    elseif instruction > 900
+        mnemonics[instruction]
     else
-        opcode = div(code, 100) * 100
-        m = mnemonic_dict[opcode]
-        operand = rem(code, 100) 
+        opcode   = div(instruction, 100) * 100
+        mnemonic = mnemonics[opcode]
+        operand  = rem(instruction, 100) 
         
-        string(m, " ", operand)       
+        string(mnemonic, " ", operand)       
     end
 end
 
 """
-    disassemble(mem::Vector{Int})
-Disassemble array of numerical codes for Little Man Computer.    
+    disassemble(program::Vector{Int})
+Disassemble array of instructions for Little Man Computer.    
 """
-function disassemble(mem::Vector{<:Integer})
-    lines = map(disassemble, mem)
+function disassemble(program::Vector{<:Integer})
+    lines = map(disassemble, program)
     
     for (i, line) in enumerate(lines)
        println(lpad(i-1, 3), " ", line) 
