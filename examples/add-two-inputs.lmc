@@ -1,7 +1,7 @@
-      INP
-      STA num1      
-      INP     
-      ADD num1
-      OUT
-      HLT
-num1  DAT
+       INP      
+       STA total
+       INP      
+       ADD total
+       OUT
+       HLT
+total  DAT
