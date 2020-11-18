@@ -29,7 +29,7 @@ In the example folder you can find more examples of programs. Here is an example
     ONE  DAT 1    // Store 1 in this memory address.
     
 ## How to Use Julia Package
-You can take a program written as the example store it in a file and give that filename to the `assemble(file)` function which will produce a list of 3-digit integers representing your program and data. You can feed this to the `execute(program, inputs)` function to run your program. It will dump output.
+You can take a program written as the example store it in a file and give that filename to the `assemble(file)` function which will produce a list of 3-digit integers representing your program and data. You can feed this to the `simulate!(program, inputs)` function to run your program. It will dump output.
 
 Alternatively you can copy paste this and put the code into one of the web based LMC simulators described below.
 

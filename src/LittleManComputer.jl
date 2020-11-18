@@ -6,26 +6,46 @@ for educational purposed, to teach beginner assembly code programming.
 # Example
     code = assemble("counter.lmc")
     inputs = [4, 3]
-    outputs = execute(code, inputs)
+    outputs = simulate!(code, inputs)
        
 Runs code stored in "counter.lmc" file with input `[4, 3]`.
 """
 module LittleManComputer
 
 export assemble, disassemble, symboltable
-export CPU, execute
+export CPU, simulate!
+export simcallback
 
 mutable struct CPU
    accumulator::Int
    pc::Int
 end
 
+
 """
-    execute(mem = [0], inputs = Int[])    
+    simcallback(cpu::CPU, instruction::Integer)
+A callback function for `simulate!` to visualize
+instructions executed.
+"""
+function simcallback(cpu::CPU, instruction::Integer)
+    println(cpu.pc, ":", instruction, 
+            "\tAccu: ", rpad(cpu.accumulator, 3), 
+            "// ", disassemble(instruction))    
+end
+
+function donothing(cpu::CPU, instruction::Integer) end
+
+"""
+    simulate!(mem = [0], inputs = Int[], callback = donothing)    
 Executes a program stored in `mem`, where each entry in an integer array is a numeric code
-for the little man computer.
+for the little man computer. The callback is a function with the following signature:
+    
+    callback(cpu::CPU, instruction::Integer)
+    
+It tells what the current state of the virtual LMC CPU is before the `instruction`
+is executed.
 """
-function execute(mem::Vector{Int} = [0], inputs::Vector{Int} = Int[])
+function simulate!(mem::Vector{Int}=[0], inputs::Vector{Int}=Int[]; callback=donothing)
     cpu = CPU(0, 0)
     outputs = Int[]
     
@@ -35,7 +55,7 @@ function execute(mem::Vector{Int} = [0], inputs::Vector{Int} = Int[])
     # limit to 1000 instructions to avoid getting trapped
     for i in 1:50
         IR = mem[cpu.pc+1]
-        println("$(cpu.pc): $IR\tAccu: ", rpad(cpu.accumulator, 3), "// ", disassemble(IR))
+        callback(cpu, IR)
         cpu.pc += 1
         
         opcode = div(IR, 100)
