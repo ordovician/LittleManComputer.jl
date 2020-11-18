@@ -5,5 +5,6 @@ using Test
 
 include("assem_tests.jl")
 include("disassem_tests.jl")
+include("simulator_tests.jl")
 
 end

@@ -31,7 +31,7 @@ examples = joinpath(@__DIR__, "../examples")
 			@test isfile(machinefile)
 			@test isfile(srcfile)
 		 
-			target = parse.(Int, filter(!isempty, readlines(machinefile)))
+			target = load(machinefile)
 			memory = assemble(srcfile)
 			@test memory == target
 		end

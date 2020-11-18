@@ -15,6 +15,15 @@ module LittleManComputer
 export assemble, disassemble, symboltable
 export CPU, simulate!
 export simcallback
+export load
+
+"""
+    load(filename) -> Vector{Int}
+Loads machine code file and return as an integer array
+"""
+function load(filename::AbstractString)
+    parse.(Int, filter(!isempty, readlines(filename)))    
+end
 
 mutable struct CPU
    accumulator::Int
@@ -49,12 +58,12 @@ function simulate!(mem::Vector{Int}=[0], inputs::Vector{Int}=Int[]; callback=don
     cpu = CPU(0, 0)
     outputs = Int[]
     
-    address(IR::Int) = rem(IR, 100) + 1
-    data(IR::Int) = mem[address(IR)]
+    address(IR::Int) = rem(IR, 100)
+    data(IR::Int) = mem[begin + address(IR)]
     
     # limit to 1000 instructions to avoid getting trapped
     for i in 1:50
-        IR = mem[cpu.pc+1]
+        IR = mem[begin + cpu.pc]
         callback(cpu, IR)
         cpu.pc += 1
         
@@ -64,7 +73,7 @@ function simulate!(mem::Vector{Int}=[0], inputs::Vector{Int}=Int[]; callback=don
         elseif opcode == 2
             cpu.accumulator -= data(IR)           
         elseif opcode == 3
-            mem[address(IR)] = cpu.accumulator
+            mem[begin + address(IR)] = cpu.accumulator
         elseif opcode == 5
             cpu.accumulator = data(IR)
         elseif opcode == 6
