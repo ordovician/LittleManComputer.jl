@@ -57,6 +57,7 @@ is executed.
 function simulate!(mem::Vector{Int}=[0], inputs::Vector{Int}=Int[]; callback=donothing)
     cpu = CPU(0, 0)
     outputs = Int[]
+    j = 1 # keep track of what input data should be read
     
     address(IR::Int) = rem(IR, 100)
     data(IR::Int) = mem[begin + address(IR)]
@@ -89,8 +90,11 @@ function simulate!(mem::Vector{Int}=[0], inputs::Vector{Int}=Int[]; callback=don
         elseif opcode == 0
             break
         elseif IR == 901
-            input = popfirst!(inputs)
-            cpu.accumulator = input
+            if j > length(inputs)
+                break
+            end
+            cpu.accumulator = inputs[j]
+            j += 1
         elseif IR == 902
             push!(outputs, cpu.accumulator)
         else
