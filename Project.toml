@@ -3,5 +3,8 @@ uuid = "c742fd3c-88f6-4004-ba45-01ef0bf0104f"
 authors = ["Erik Engheim <erik.engheim@mac.com>"]
 version = "0.1.0"
 
+[deps]
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+
 [compat]
 julia = "1.4"
