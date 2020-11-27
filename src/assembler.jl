@@ -77,7 +77,7 @@ function assemble_mnemonic(words::Vector{<:AbstractString}, labels=Dict{String, 
     # Deal with regular assembly code
     mnemonic = words[i]
     if !haskey(opcodes, mnemonic)
-        error("'$mnemonic' is an unknown mnemonic")
+        @error "'$mnemonic' is an unknown mnemonic"
     end
     opcode = opcodes[mnemonic]
     if opcode != 0 && rem(opcode, 100) == 0
@@ -104,8 +104,9 @@ function assemble(filename::AbstractString)
     program = Int[]
     
     labels = symboltable(lines)
+    @debug "found labels" labels
     
-    for line in lines
+    for (i, line) in enumerate(lines)
         codeline = remove_comment(line)
         words = split(codeline)
         
@@ -114,6 +115,7 @@ function assemble(filename::AbstractString)
         end
         
         instruction = assemble_mnemonic(words, labels)
+        @debug "parsed line $i:" line words instruction
         if instruction == nothing
             continue
         else
