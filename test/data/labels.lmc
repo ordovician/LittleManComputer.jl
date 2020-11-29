@@ -4,3 +4,9 @@ one    OUT
 two    INP
 
 three  HLT
+
+// This is just to use the labels otherwise they will not get picked up
+LDA zero
+LDA one
+LDA two
+LDA three

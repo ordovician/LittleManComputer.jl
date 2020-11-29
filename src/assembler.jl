@@ -1,5 +1,13 @@
 export assemble, symboltable
 
+"Thrown if assembler doesn't know the mnemonic parsed"
+struct InvalidMnemonicError <: Exception
+    mnemonic::String
+end
+
+"Remove comment from source code line"
+remove_comment(line) = split(line, "//") |> first |> strip
+
 """
     symboltable(filename::AbstractString)
 Parse `filename` and find all labels used in assembly program.
@@ -21,27 +29,34 @@ Return this as a dictionary.
 """
 function symboltable(lines::AbstractArray{<:AbstractString})
     labels = Dict{String, Int}()
+    possible_used_labels = Set{String}()
+    
     address = 0
     
     for line in lines
-        words = split(line)
-        if isempty(words)
-            continue
-        end
+        codeline = remove_comment(line)
+        words = split(codeline)
         
-        label = words[1]
+        if isempty(words) continue end
         
-        if !haskey(opcodes, label)
-            labels[label] = address
+        if length(words) > 1
+            if haskey(opcodes, words[2]) || words[2] == "DAT"
+                label = words[1]
+                labels[label] = address
+            end
+            if isletter(words[end][1])
+                push!(possible_used_labels, words[end])
+            end
         end
         
         address += 1
     end
-    labels
+    
+    # We don't need labels which are never used
+    filter(labels) do (k, _)
+        k in possible_used_labels 
+    end
 end
-
-"Remove comment from source code line"
-remove_comment(line) = split(line, "//") |> first |> strip
 
 """
     assemble_mnemonic(words, labels) -> Union{Int, Nothing}
@@ -56,15 +71,18 @@ julia> assemble_mnemonic(["ADD", "42"])
 ```
 """
 function assemble_mnemonic(words::Vector{<:AbstractString}, labels=Dict{String, Int}())
-    # Assume first word is mnemonic until disproven
-    i = 1   
-    if haskey(labels, words[1])
-        if length(words) == 1
-            return nothing
-        end
-        i = 2
+    i = findfirst(words) do word
+        in(word, keys(opcodes)) || word == "DAT"
     end
     
+    if i == nothing
+        for word in words
+            if word ∉ keys(labels) 
+                throw(InvalidMnemonicError(word))
+            end
+        end
+    end
+
     # Check if we have a data directive and handle it
     if words[i] == "DAT"
 		if length(words) > 2
@@ -76,9 +94,6 @@ function assemble_mnemonic(words::Vector{<:AbstractString}, labels=Dict{String, 
     
     # Deal with regular assembly code
     mnemonic = words[i]
-    if !haskey(opcodes, mnemonic)
-        @error "'$mnemonic' is an unknown mnemonic"
-    end
     opcode = opcodes[mnemonic]
     if opcode != 0 && rem(opcode, 100) == 0
         arg = words[i+1]
@@ -114,12 +129,20 @@ function assemble(filename::AbstractString)
             continue
         end
         
-        instruction = assemble_mnemonic(words, labels)
-        @debug "parsed line $i:" line words instruction
-        if instruction == nothing
-            continue
-        else
-            push!(program, instruction)
+        try
+            instruction = assemble_mnemonic(words, labels)
+            if instruction == nothing
+                continue
+            else
+                @debug "parsed line $i:" line words instruction                
+                push!(program, instruction)
+            end            
+        catch ex
+            if isa(ex, InvalidMnemonicError)
+                @error "Line $i: Encountered invalid mnemonic '$(ex.mnemonic)'"
+            else
+                rethrow()
+            end
         end
     end
     program

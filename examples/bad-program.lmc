@@ -1,0 +1,7 @@
+       INP      
+       STA total
+       INP      
+       MUL total // No multiplcation instruction exists. Should fail
+       OUTPUT    // No output instructon exist. Should fail 
+       HLT
+total  DAT
