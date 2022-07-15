@@ -1,4 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
-[[Logging]]
+manifest_format = "2.0"
+
+[[deps.Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
